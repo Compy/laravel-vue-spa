@@ -1,0 +1,50 @@
+version: '3.2'
+
+services:
+  laravel-fpm:
+    build:
+      context: ./etc/fpm
+    container_name: laravel-fpm
+    volumes:
+    - .:/var/www/app
+    env_file:
+    - ./php.env
+    networks:
+    - laravelapp
+
+  laravel-nginx:
+    build:
+      context: ./etc/nginx
+    container_name: laravel-nginx
+    volumes:
+    - .:/var/www/app
+    environment:
+    - VIRTUAL_HOST=local-laravel.laravel.com
+    networks:
+    - laravelapp
+
+  laravel-database:
+    container_name: laravel-database
+    build:
+      context: ./etc/mysql
+    ports:
+    - "3306:3306"
+    env_file:
+    - ./etc/mysql/mysql.env
+    volumes:
+    - ./etc/mysql/storage:/var/lib/mysql:delegated
+    networks:
+    - laravelapp
+
+  laravel-proxy:
+    container_name: laravel-proxy
+    image: jwilder/nginx-proxy
+    ports:
+    - "80:80"
+    volumes:
+    - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+    - laravelapp
+
+networks:
+  laravelapp:
